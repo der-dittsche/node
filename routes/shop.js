@@ -6,7 +6,10 @@ const router = express.Router();
 
 router.get("/", shopControllers.getIndex);
 router.get("/products", shopControllers.getProducts);
+router.get("/products/:productId", shopControllers.getProductDetail);
 router.get("/card", shopControllers.getCard);
+router.post("/card", shopControllers.postCard);
+router.post("/card-delete-item", shopControllers.postDeleteItem);
 router.get("/orders", shopControllers.getOrders);
 router.get("/checkout", shopControllers.getCheckout);
 

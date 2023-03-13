@@ -1,4 +1,5 @@
 const Product = require("../models/product.js");
+const Card = require("../models/card.js");
 
 exports.getProducts = (req, res, next) => {
   Product.fetchAll((products) => {
@@ -6,6 +7,17 @@ exports.getProducts = (req, res, next) => {
       prods: products,
       pageTitle: "Shop",
       path: "/",
+    });
+  });
+};
+
+exports.getProductDetail = (req, res, next) => {
+  const prodId = req.params.productId;
+  Product.findById(prodId, (product) => {
+    res.render("shop/product-details", {
+      product: product,
+      pageTitle: "Details",
+      path: "/products",
     });
   });
 };
@@ -21,9 +33,39 @@ exports.getIndex = (req, res, next) => {
 };
 
 exports.getCard = (req, res, next) => {
-  res.render("shop/card", {
-    path: "/card",
-    pageTitle: "Your Card",
+  Card.getCard((card) => {
+    Product.fetchAll((products) => {
+      const cardProducts = [];
+      for (product of products) {
+        const cardProductData = card.products.find(
+          (prod) => prod.id === product.id
+        );
+        if (cardProductData) {
+          cardProducts.push({ productData: product, qty: cardProductData.qty });
+        }
+      }
+      res.render("shop/card", {
+        path: "/card",
+        pageTitle: "Your Card",
+        products: cardProducts,
+      });
+    });
+  });
+};
+
+exports.postCard = (req, res, next) => {
+  const prodId = req.body.productId;
+  Product.findById(prodId, (product) => {
+    Card.addProduct(prodId, product.price);
+  });
+  res.redirect("/card");
+};
+
+exports.postDeleteItem = (req, res, next) => {
+  const prodId = req.body.productId;
+  Product.findById(prodId, (product) => {
+    Card.deleteProduct(prodId, product.price);
+    res.redirect("/card");
   });
 };
 
