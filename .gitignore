@@ -1,3 +1,4 @@
 /node_modules/
 /util/mysql*
+/util/mongo*
 text.txt
