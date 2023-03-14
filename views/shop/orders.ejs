@@ -6,6 +6,26 @@
         </header>
 
         <main>
+            <% if(orders.length <=0) {%>
+                <h1>Orderlist is empty</h1>
+                <% }else{ %>
+                    <ul>
+                        <% orders.forEach(order=> { %>
+                            <li>
+                                <h1>#<%= order.id %>
+                                </h1>
+                                <ul>
+                                    <% order.products.forEach(item=> { %>
+                                        <li>
+                                            <h>
+                                                <%= item.title %> (<%= item.orderItem.quantity %>)</p>
+                                        </li>
+                                        <% }) %>
+                                </ul>
+                            </li>
+                            <% }) %>
 
+                    </ul>
+                    <% } %>
         </main>
         <%- include('../includes/end.ejs' )%>

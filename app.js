@@ -12,6 +12,8 @@ const Product = require("./models/product");
 const User = require("./models/user");
 const Card = require("./models/card");
 const CardItem = require("./models/card-items");
+const Order = require("./models/order");
+const OrderItem = require("./models/order-items");
 
 app.set("view engine", "ejs");
 app.set("views", "views");
@@ -42,6 +44,10 @@ User.hasOne(Card);
 Card.belongsTo(User);
 Card.belongsToMany(Product, { through: CardItem });
 Product.belongsToMany(Card, { through: CardItem });
+Order.belongsTo(User);
+User.hasMany(Order);
+Order.belongsToMany(Product, { through: OrderItem });
+Product.belongsToMany(Order, { through: OrderItem });
 
 sequelize
   /* .sync({ force: true }) */
