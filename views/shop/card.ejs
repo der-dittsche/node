@@ -11,10 +11,10 @@
                     <% products.forEach(p=> { %>
                         <li>
                             <p>
-                                <%= p.title %> (<%= p.cardItem.quantity %>)
+                                <%= p.title %> (<%= p.quantity %>)
                             </p>
                             <form action="/card-delete-item" method="POST">
-                                <input type="hidden" value="<%= p.id %>" name="productId">
+                                <input type="hidden" value="<%= p._id %>" name="productId">
                                 <button class="btn">Delete from Card</button>
                             </form>
                         </li>

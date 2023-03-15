@@ -1,4 +1,4 @@
 /node_modules/
 /util/mysql*
-/util/mongo*
+/util/mongodb*
 text.txt
