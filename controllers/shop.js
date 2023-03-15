@@ -83,27 +83,7 @@ exports.postDeleteItem = (req, res, next) => {
 exports.postOrder = (req, res, next) => {
   let fetchedCard;
   req.user
-    .getCard()
-    .then((card) => {
-      fetchedCard = card;
-      return card.getProducts();
-    })
-    .then((products) => {
-      return req.user
-        .createOrder()
-        .then((order) => {
-          return order.addProduct(
-            products.map((product) => {
-              product.orderItem = { quantity: product.cardItem.quantity };
-              return product;
-            })
-          );
-        })
-        .catch((err) => console.log(err));
-    })
-    .then(() => {
-      return fetchedCard.setProducts(null);
-    })
+    .addOrder()
     .then(() => {
       res.redirect("/orders");
     })
@@ -112,7 +92,7 @@ exports.postOrder = (req, res, next) => {
 
 exports.getOrders = (req, res, next) => {
   req.user
-    .getOrders({ include: ["products"] })
+    .getOrder({ include: ["products"] })
     .then((order) => {
       res.render("shop/orders", {
         path: "/orders",
