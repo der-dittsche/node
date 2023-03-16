@@ -6,19 +6,24 @@
         </header>
 
         <main>
-            <form class="login-form" action="/login" method="POST">
-                <div class="form-control">
-                    <label for="email">E-Mail</label>
-                    <input type="email" name="email" id="email">
+            <% if(errorMessage) { %>
+                <div class="user-message user-message--error">
+                    <%= errorMessage %>
                 </div>
-                <div class="form-control">
-                    <label for="password">Password</label>
-                    <input type="password" name="password" id="password" autocomplete="none">
-                </div>
-                <input type="hidden" value="<%= csrfToken %>" name="_csrf">
-                <button type="submit" class="btn">
-                    Login
-                </button>
-            </form>
+                <% } %>
+                    <form class="login-form" action="/login" method="POST">
+                        <div class="form-control">
+                            <label for="email">E-Mail</label>
+                            <input type="email" name="email" id="email">
+                        </div>
+                        <div class="form-control">
+                            <label for="password">Password</label>
+                            <input type="password" name="password" id="password" autocomplete="none">
+                        </div>
+                        <input type="hidden" value="<%= csrfToken %>" name="_csrf">
+                        <button type="submit" class="btn">
+                            Login
+                        </button>
+                    </form>
         </main>
         <%- include('../includes/end.ejs' )%>
