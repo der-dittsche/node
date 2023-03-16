@@ -1,3 +1,4 @@
+<button id="side-menu-toggle">Menu</button>
 <nav class="main-header__nav">
     <ul class="main-header__item-list">
         <li class="main-header__item">
@@ -6,17 +7,34 @@
         <li class="main-header__item">
             <a href="/products" class="<%= path === '/products' ? 'active' : '' %>">Products</a>
         </li>
-        <li class="main-header__item">
-            <a href="/card" class="<%= path === '/card' ? 'active' : '' %>">Card</a>
-        </li>
-        <li class="main-header__item">
-            <a href="/orders" class="<%= path === '/order' ? 'active' : '' %>">Orders</a>
-        </li>
-        <li class="main-header__item">
-            <a href="/admin/add-product" class="<%= path === '/admin/add-product' ? 'active' : '' %>">Add Product</a>
-        </li>
-        <li class="main-header__item">
-            <a href="/admin/products" class="<%= path === '/admin/products' ? 'active' : '' %>">Admin Products</a>
-        </li>
+        <% if (isAuthenticated) { %>
+            <li class="main-header__item">
+                <a href="/card" class="<%= path === '/card' ? 'active' : '' %>">Card</a>
+            </li>
+            <li class="main-header__item">
+                <a href="/orders" class="<%= path === '/order' ? 'active' : '' %>">Orders</a>
+            </li>
+
+            <li class="main-header__item">
+                <a href="/admin/add-product" class="<%= path === '/admin/add-product' ? 'active' : '' %>">Add
+                    Product</a>
+            </li>
+            <li class="main-header__item">
+                <a href="/admin/products" class="<%= path === '/admin/products' ? 'active' : '' %>">Admin Products</a>
+            </li>
+            <% } %>
+    </ul>
+    <ul class="main-header__item-list">
+        <% if (!isAuthenticated) { %>
+            <li class="main-header__item">
+                <a href="/login" class="<%= path === '/login' ? 'active' : '' %>">Login</a>
+            </li>
+            <% } else { %>
+                <li class="main-header__item">
+                    <form action="/logout" method="POST">
+                        <button type="submit" class="<%= path === '/login' ? 'active' : '' %>">Logout</button>
+                    </form>
+                </li>
+                <% } %>
     </ul>
 </nav>
