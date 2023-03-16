@@ -1,7 +1,9 @@
 const Product = require("../models/product.js");
+const Order = require("../models/order.js");
+const { Schema } = require("mongoose");
 
 exports.getProducts = (req, res, next) => {
-  Product.fetchAll()
+  Product.find()
     .then((products) => {
       res.render("shop/product-list", {
         prods: products,
@@ -14,15 +16,6 @@ exports.getProducts = (req, res, next) => {
 
 exports.getProductDetail = (req, res, next) => {
   const prodId = req.params.productId;
-  /*   Product.findAll({where: {id: prodId}})
-  .then((products) => {
-    res.render("shop/product-details", {
-      product: products[0],
-      pageTitle: "Details" / products[0].title,
-      path: "/products",
-    });
-  }) 
-  .catch((err) => console.log(err));*/
   Product.findById(prodId)
     .then((product) => {
       res.render("shop/product-details", {
@@ -35,7 +28,7 @@ exports.getProductDetail = (req, res, next) => {
 };
 
 exports.getIndex = (req, res, next) => {
-  Product.fetchAll()
+  Product.find()
     .then((products) => {
       res.render("shop/index", {
         prods: products,
@@ -48,12 +41,13 @@ exports.getIndex = (req, res, next) => {
 
 exports.getCard = (req, res, next) => {
   req.user
-    .getCard()
-    .then((products) => {
+    .populate("card.items.productId")
+    .then((user) => {
+      const product = user.card.items;
       res.render("shop/card", {
         path: "/card",
         pageTitle: "Your Card",
-        products: products,
+        products: product,
       });
     })
     .catch((err) => console.log(err));
@@ -81,9 +75,24 @@ exports.postDeleteItem = (req, res, next) => {
 };
 
 exports.postOrder = (req, res, next) => {
-  let fetchedCard;
   req.user
-    .addOrder()
+    .populate("card.items.productId")
+    .then((user) => {
+      const product = user.card.items.map((i) => {
+        return { quantity: i.quantity, product: { ...i.productId._doc } };
+      });
+      const order = new Order({
+        user: {
+          name: req.user.name,
+          userId: req.user,
+        },
+        products: product,
+      });
+      return order.save();
+    })
+    .then(() => {
+      return req.user.clearCard();
+    })
     .then(() => {
       res.redirect("/orders");
     })
@@ -91,8 +100,7 @@ exports.postOrder = (req, res, next) => {
 };
 
 exports.getOrders = (req, res, next) => {
-  req.user
-    .getOrder({ include: ["products"] })
+  Order.find({ "user.userId": req.user._id })
     .then((order) => {
       res.render("shop/orders", {
         path: "/orders",

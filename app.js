@@ -2,10 +2,10 @@ const path = require("path");
 
 const express = require("express");
 const bodyParser = require("body-parser");
+const mongoose = require("mongoose");
 
 const errorController = require("./controllers/error");
 
-const mongoConnect = require("./util/mongodb").mongoConnect;
 const User = require("./models/user");
 
 const app = express();
@@ -20,9 +20,9 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use((req, res, next) => {
-  User.findById("64110f17273f635fde74bd0c")
+  User.findById("6412528e46c57993eb1174a4")
     .then((user) => {
-      req.user = new User(user.name, user.email, user.card, user._id);
+      req.user = user;
       next();
     })
     .catch((err) => console.log(err));
@@ -33,6 +33,24 @@ app.use(shopRoutes);
 
 app.use(errorController.get404);
 
-mongoConnect(() => {
-  app.listen(3000);
-});
+mongoose
+  .connect()
+  .then(() => {
+    User.findOne().then((user) => {
+      if (!user) {
+        const user = new User({
+          name: "Sascha",
+          email: "test@test.com",
+          card: {
+            items: [],
+          },
+        });
+        user.save();
+      }
+    });
+
+    app.listen(3000);
+  })
+  .catch((err) => {
+    console.log(err);
+  });
