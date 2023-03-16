@@ -1,5 +1,6 @@
 <form action="/card" method="post">
     <% if (isAuthenticated) { %>
+        <input type="hidden" value="<%= csrfToken %>" name="_csrf">
         <button class="btn" type="submit">Add to Card</button>
         <input type="hidden" name="productId" value="<%= product._id %>">
         <% } %>
