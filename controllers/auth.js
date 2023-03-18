@@ -1,10 +1,8 @@
 const User = require("../models/user");
 const bcrypt = require("bcryptjs");
+
 const crypto = require("crypto");
-<<<<<<< HEAD
-=======
 
-<<<<<<< HEAD
 const nodemailer = require("nodemailer");
 const sendgridTransport = require("nodemailer-sendgrid-transport");
 
@@ -16,22 +14,6 @@ const transporter = nodemailer.createTransport(
   })
 );
 
-<<<<<<< HEAD
-=======
-const nodemailer = require("nodemailer");
-const sendgridTransport = require("nodemailer-sendgrid-transport");
-
-const transporter = nodemailer.createTransport(
-  sendgridTransport({
-    auth: {
-      api_key: "",
-    },
-  })
-);
-
->>>>>>> 31ab64a (debug)
-=======
->>>>>>> parent of 5151863 (feat: add send singup info mail)
 exports.getLogin = (req, res, next) => {
   let message = req.flash("error");
   if (message.length > 0) {
@@ -114,6 +96,16 @@ exports.postSignup = (req, res, next) => {
         })
         .then((result) => {
           res.redirect("/login");
+          return transporter
+            .sendMail({
+              to: email,
+              from: "sascha@dreaddies-net.work",
+              subject: "Signup secceeded!",
+              html: "<h1>You successfully signed up!</h1>",
+            })
+            .catch((err) => {
+              console.log(err);
+            });
         });
     })
     .catch((err) => {
@@ -135,7 +127,7 @@ exports.getReset = (req, res, next) => {
     message = null;
   }
   res.render("auth/reset", {
-    pageTitle: "reset",
+    pageTitle: "Reset your password",
     path: "/reset",
     errorMessage: message,
   });
@@ -174,4 +166,55 @@ exports.postReset = (req, res, next) => {
         console.log(err);
       });
   });
+};
+
+exports.getNewPassword = (req, res, next) => {
+  const token = req.params.token;
+  User.findOne({ resetToken: token, resetTokenExpiration: { $gt: Date.now() } })
+    .then((user) => {
+      let message = req.flash("error");
+      if (message.length > 0) {
+        message = message[0];
+      } else {
+        message = null;
+      }
+      res.render("auth/new-password", {
+        pageTitle: "newpassword",
+        path: "/New password",
+        errorMessage: message,
+        userId: user._id.toString(),
+        passwordToken: token,
+      });
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+};
+
+exports.postNewPassword = (req, res, next) => {
+  const newPassword = req.body.password;
+  const userId = req.body.userId;
+  const passwordToken = req.body.passwordToken;
+  let resetUser;
+  User.findOne({
+    resetToken: passwordToken,
+    resetTokenExpiration: { $gt: Date.now() },
+    _id: userId,
+  })
+    .then((user) => {
+      resetUser = user;
+      return bcrypt.hash(newPassword, 12);
+    })
+    .then((hashedPassword) => {
+      resetUser.password = hashedPassword;
+      resetUser.resetToken = undefined;
+      resetUser.resetTokenExpiration = undefined;
+      return resetUser.save();
+    })
+    .then((result) => {
+      res.redirect("/login");
+    })
+    .catch((err) => {
+      console.log(err);
+    });
 };
