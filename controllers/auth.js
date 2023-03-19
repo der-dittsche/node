@@ -6,6 +6,8 @@ const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const sendgridTransport = require("nodemailer-sendgrid-transport");
 
+const { validationResult } = require("express-validator");
+
 const transporter = nodemailer.createTransport(
   sendgridTransport({
     auth: {
@@ -25,17 +27,36 @@ exports.getLogin = (req, res, next) => {
     pageTitle: "Login",
     path: "/login",
     errorMessage: message,
+    oldInput: { email: "", passowrd: "" },
+    validationsErrors: [],
   });
 };
 
 exports.postLogin = (req, res, next) => {
   const email = req.body.email;
   const password = req.body.password;
+
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).render("auth/login", {
+      pageTitle: "Login",
+      path: "/login",
+      errorMessage: errors.array()[0].msg,
+      oldInput: { email: email, passowrd: password },
+      validationsErrors: errors.array(),
+    });
+  }
+
   User.findOne({ email: email })
     .then((user) => {
       if (!user) {
-        req.flash("error", "Invalid email or password.");
-        return res.redirect("/login");
+        return res.status(422).render("auth/login", {
+          pageTitle: "Login",
+          path: "/login",
+          errorMessage: "Invalid email or password.",
+          oldInput: { email: email, passowrd: password },
+          validationsErrors: [{ param: "email", param: "password" }],
+        });
       }
       bcrypt
         .compare(password, user.password)
@@ -47,8 +68,14 @@ exports.postLogin = (req, res, next) => {
               res.redirect("/");
             });
           }
-          req.flash("error", "Invalid email or password.");
-          res.redirect("/login");
+
+          return res.status(422).render("auth/login", {
+            pageTitle: "Login",
+            path: "/login",
+            errorMessage: "Invalid email or password.",
+            oldInput: { email: email, passowrd: password },
+            validationsErrors: [{ param: "email", param: "password" }],
+          });
         })
         .catch((err) => {
           console.log(err);
@@ -69,47 +96,48 @@ exports.getSignup = (req, res, next) => {
     path: "/signup",
     pageTitle: "Signup",
     errorMessage: message,
+    oldInput: { email: "" },
+    validationsErrors: [],
   });
 };
 
 exports.postSignup = (req, res, next) => {
   const email = req.body.email;
   const password = req.body.password;
-  const confirmpassword = req.body.confirmpassword;
-  User.findOne({ email: email })
-    .then((userDoc) => {
-      if (userDoc) {
-        req.flash("error", "E-Mail exists already.");
-        return res.redirect("/signup");
-      }
-      return bcrypt
-        .hash(password, 12)
-        .then((hashedPassword) => {
-          const user = new User({
-            email: email,
-            password: hashedPassword,
-            card: {
-              items: [],
-            },
-          });
-          return user.save();
-        })
-        .then((result) => {
-          res.redirect("/login");
-          return transporter
-            .sendMail({
-              to: email,
-              from: "sascha@dreaddies-net.work",
-              subject: "Signup secceeded!",
-              html: "<h1>You successfully signed up!</h1>",
-            })
-            .catch((err) => {
-              console.log(err);
-            });
-        });
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).render("auth/signup", {
+      path: "/signup",
+      pageTitle: "Signup",
+      errorMessage: errors.array()[0].msg,
+      oldInput: { email: email },
+      validationsErrors: errors.array(),
+    });
+  }
+  return bcrypt
+    .hash(password, 12)
+    .then((hashedPassword) => {
+      const user = new User({
+        email: email,
+        password: hashedPassword,
+        card: {
+          items: [],
+        },
+      });
+      return user.save();
     })
-    .catch((err) => {
-      console.log(err);
+    .then((result) => {
+      res.redirect("/login");
+      return transporter
+        .sendMail({
+          to: email,
+          from: "sascha@dreaddies-net.work",
+          subject: "Signup secceeded!",
+          html: "<h1>You successfully signed up!</h1>",
+        })
+        .catch((err) => {
+          console.log(err);
+        });
     });
 };
 
