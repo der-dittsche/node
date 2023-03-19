@@ -11,7 +11,7 @@ const flash = require("connect-flash");
 const errorController = require("./controllers/error");
 
 const User = require("./models/user");
-const MONGODB_URI = "";
+const MONGODB_URI = process.env.MONGODB_API_KEY;
 
 const app = express();
 const store = new MongoDbStore({

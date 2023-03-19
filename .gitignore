@@ -4,3 +4,4 @@
 text.txt
 
 /util/mongo*
+/config/*
