@@ -370,3 +370,11 @@ form {
   border-radius: 5px;
   background-color: rgb(250, 191, 191);
 }
+
+.form-control input.invalid {
+  border: 3px solid red;
+}
+
+.form-control textarea.invalid {
+  border: 3px solid red;
+}
