@@ -1,3 +1,7 @@
+require("dotenv").config({
+  path: "./config/serv.env",
+});
+
 const path = require("path");
 
 const express = require("express");
@@ -7,11 +11,21 @@ const session = require("express-session");
 const MongoDbStore = require("connect-mongodb-session")(session);
 const csrf = require("csurf");
 const flash = require("connect-flash");
+const multer = require("multer");
 
 const errorController = require("./controllers/error");
 
 const User = require("./models/user");
 const MONGODB_URI = process.env.MONGODB_API_KEY;
+
+const fileStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "images");
+  },
+  filename: (req, file, cb) => {
+    cb(null, new Date().toISOString() + "-" + file.originalname);
+  },
+});
 
 const app = express();
 const store = new MongoDbStore({
@@ -27,9 +41,9 @@ app.set("views", "views");
 const adminRoutes = require("./routes/admin");
 const shopRoutes = require("./routes/shop");
 const authRoutes = require("./routes/auth");
-const { MongoDBStore } = require("connect-mongodb-session");
 
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(multer({ storage: fileStorage }).single("image"));
 app.use(express.static(path.join(__dirname, "public")));
 app.use(
   session({
