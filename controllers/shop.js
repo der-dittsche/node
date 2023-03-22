@@ -1,6 +1,10 @@
 const Product = require("../models/product.js");
 const Order = require("../models/order.js");
-const { Schema } = require("mongoose");
+const PDFDocument = require("pdfkit");
+
+const fs = require("fs");
+const path = require("path");
+const product = require("../models/product.js");
 
 exports.getProducts = (req, res, next) => {
   Product.find()
@@ -144,4 +148,68 @@ exports.getCheckout = (req, res, next) => {
     path: "/checkout",
     pageTitle: "Checkout",
   });
+};
+
+exports.getInvoices = (req, res, next) => {
+  const orderId = req.params.orderId;
+  Order.findById(orderId)
+    .then((order) => {
+      if (!order) {
+        return next(new Error("No order found."));
+      }
+      if (order.user.userId.toString() !== req.user._id.toString()) {
+        return next(new Error("Unauthorized"));
+      }
+      const invoiceName = "invoice-" + orderId + ".pdf";
+      const invoicePath = path.join("data", "invoices", invoiceName);
+
+      const doc = new PDFDocument();
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader(
+        "Content-Disposition",
+        'inline; filename="' + invoiceName + '"'
+      );
+      doc.pipe(fs.createWriteStream(invoicePath));
+      doc.pipe(res);
+
+      doc.fontSize(26).text("Invoice", { underline: true });
+      doc.text("--------------------------");
+      let totalPrice = 0;
+      order.products.forEach((prod) => {
+        totalPrice += prod.quantity * prod.product.price;
+        doc
+          .fontSize(20)
+          .text(
+            prod.product.title +
+              " - " +
+              prod.quantity +
+              "*" +
+              prod.product.price +
+              "€"
+          );
+        doc
+          .fontSize(20)
+          .text(
+            "article complete: " + prod.quantity * prod.product.price + "€"
+          );
+        doc.fontSize(24).text("--------------------------");
+      });
+      doc.text("total price: " + totalPrice + "€");
+      doc.end();
+      /*       fs.readFile(invoicePath, (err, data) => {
+        if (err) {
+          return next(err);
+        }
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader(
+          "Content-Disposition",
+          'attachment; filename="' + invoiceName + '"'
+        );
+        res.send(data);
+      }); */
+      /*       const file = fs.createReadStream(invoicePath);
+
+      file.pipe(res); */
+    })
+    .catch((err) => next(err));
 };
